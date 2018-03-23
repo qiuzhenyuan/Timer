@@ -36,7 +36,11 @@ void insert(Heap *heap, char key[],timestamp x ){
     //找到合适的位置，把元素放进去
     strcpy(heap->Elements[i].key, key);
     heap->Elements[i].expiration = x;  
-    printf("插入了%s,过期时间为%d, 位置为%d\n",key, x, i); 
+    printf("插入了%s,过期时间为%d, 位置为%d,堆容量为%d,堆中有元素%d个\n",key, x, i,
+            heap->Capicity, heap->Size);
+   //满足条件则扩大堆容量 
+    if(heap->Capicity < heap->Size*2)
+        expandHeap(heap);
 }
 
 //初始化一个容量为n的堆
@@ -79,14 +83,46 @@ int  deleteMin(Heap *heap ){
     }
     strcpy(heap->Elements[i].key,lastElement.key); 
     heap->Elements[i].expiration = lastElement.expiration;
+    //检查元素数量，小于容量的1/6，则缩小堆的容量
+    if(heap->Capicity > heap->Size * 6 && heap->Capicity > INIT_HEAP_SIZE)
+        shrinkHeap(heap);
     return minElement.expiration;
 }
 
 //获取最快过期的元素,堆为空时，返回Elements[0]
 timestamp getMin(Heap *heap){
-    if(isEmpty(heap)){
+    if(isEmpty(heap) == 1){
         return MIN_TIMESTAMP;
     }
     return heap->Elements[1].expiration;
 }
 
+//扩大堆
+void expandHeap(Heap *heap){
+    heap->Capicity = 2 * heap->Capicity;
+    element *newEle = malloc(sizeof(element) * heap->Capicity);
+    int i;
+    for(i = 0; i < heap->Size; i++){
+        newEle[i] = heap->Elements[i];
+    }
+    element *oldEle = heap->Elements;
+    heap->Elements = newEle;
+    free(oldEle);
+    printf("堆容量调整,扩大为：%d\nHeapTimer->", heap->Capicity);
+}
+
+//缩小堆
+void shrinkHeap(Heap *heap){
+    heap->Capicity =  heap->Capicity / 2;
+    element *newEle = malloc(sizeof(element) * heap->Capicity);
+    int i;
+    for(i = 0; i < heap->Size; i++){
+        newEle[i] = heap->Elements[i];
+    }
+    element *oldEle = heap->Elements;
+    heap->Elements = newEle;
+    free(oldEle);
+    printf("堆容量调整,缩小为：%d\nHeapTimer->", heap->Capicity);
+
+
+}
